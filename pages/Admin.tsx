@@ -4,24 +4,22 @@ import { AppState, SiteSettings, ServiceItem, PortfolioItem, AboutContent } from
 
 interface AdminProps {
   state: AppState;
-  updateSettings: (newSettings: SiteSettings) => void;
-  updateServices: (newServices: ServiceItem[]) => void;
-  updatePortfolio: (newPortfolio: PortfolioItem[]) => void;
-  updateAbout: (newAbout: AboutContent) => void;
+  onSaveAll: (newState: AppState) => Promise<void>;
 }
 
-const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, updatePortfolio, updateAbout }) => {
+const Admin: React.FC<AdminProps> = ({ state, onSaveAll }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  // 개별 폼 상태 관리
   const [settingsForm, setSettingsForm] = useState<SiteSettings>(state.settings);
   const [servicesForm, setServicesForm] = useState<ServiceItem[]>(state.services);
   const [portfolioForm, setPortfolioForm] = useState<PortfolioItem[]>(state.portfolio);
   const [aboutForm, setAboutForm] = useState<AboutContent>(state.about);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
-  // 외부에서 state가 변경되었을 때 폼 동기화 (온라인 DB 반영 확인용)
+  // 외부(AppState)의 변화를 폼에 동기화 (저장 확인용)
   useEffect(() => {
     setSettingsForm(state.settings);
     setServicesForm(state.services);
@@ -41,17 +39,20 @@ const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, up
 
   const handleSave = async () => {
     setSaveStatus('saving');
-    // 상위 App의 상태 업데이트 함수들을 순차적으로 호출 (App.tsx 내부에서 db.saveState 호출됨)
-    updateSettings(settingsForm);
-    updateServices(servicesForm);
-    updatePortfolio(portfolioForm);
-    updateAbout(aboutForm);
     
-    // 비동기 처리 완료 시뮬레이션
-    setTimeout(() => {
-      setSaveStatus('saved');
-      setTimeout(() => setSaveStatus('idle'), 2000);
-    }, 1000);
+    // 현재 폼에 입력된 모든 데이터를 하나의 AppState 객체로 결합
+    const updatedState: AppState = {
+      settings: settingsForm,
+      services: servicesForm,
+      portfolio: portfolioForm,
+      about: aboutForm
+    };
+    
+    // 통합 저장 함수 호출 (App.tsx -> db.ts 로 연결됨)
+    await onSaveAll(updatedState);
+    
+    setSaveStatus('saved');
+    setTimeout(() => setSaveStatus('idle'), 2000);
   };
 
   const handleServiceChange = (id: string, field: keyof ServiceItem, value: string) => {
@@ -122,7 +123,7 @@ const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, up
             <h1 className="text-4xl font-black mb-2 text-white">관리자 대시보드</h1>
             <div className="flex items-center gap-2">
                <div className={`w-2 h-2 rounded-full ${saveStatus === 'saving' ? 'bg-yellow-500 animate-ping' : 'bg-green-500'}`}></div>
-               <p className="text-gray-500 text-sm">Online Database Status: {saveStatus === 'saving' ? 'Syncing...' : 'Connected'}</p>
+               <p className="text-gray-500 text-sm">로컬 DB 상태: {saveStatus === 'saving' ? '데이터 동기화 중...' : '연결됨'}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -143,7 +144,7 @@ const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, up
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                 )}
-                {saveStatus === 'saving' ? 'Cloud Sync...' : saveStatus === 'saved' ? '저장 완료!' : '온라인에 반영하기'}
+                {saveStatus === 'saving' ? '내 컴퓨터에 저장 중...' : saveStatus === 'saved' ? '저장 완료!' : '수정사항 최종 반영'}
               </button>
           </div>
         </div>
@@ -254,10 +255,11 @@ const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, up
                     <div className="flex flex-col md:flex-row gap-6">
                       <div className="w-full md:w-1/3">
                         <img src={service.image} className="w-full h-32 object-cover rounded-xl mb-3 border border-white/10" />
+                        <label className="block text-[10px] text-gray-500 mb-1">이미지 주소 (URL)</label>
                         <input 
                           value={service.image} 
                           onChange={(e) => handleServiceChange(service.id, 'image', e.target.value)}
-                          placeholder="이미지 URL"
+                          placeholder="이미지 주소를 입력하세요"
                           className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-[11px] text-white focus:border-[#8B5CF6] outline-none" 
                         />
                       </div>
@@ -314,7 +316,7 @@ const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, up
                     <div className="flex flex-col md:flex-row gap-6">
                       <div className="w-full md:w-1/3">
                         <img src={item.image} className="w-full h-40 object-cover rounded-xl mb-3 border border-white/10" />
-                        <label className="block text-[10px] text-gray-500 mb-1">이미지 URL</label>
+                        <label className="block text-[10px] text-gray-500 mb-1">이미지 주소 (URL)</label>
                         <input 
                           value={item.image} 
                           onChange={(e) => handlePortfolioChange(item.id, 'image', e.target.value)}
@@ -368,15 +370,15 @@ const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, up
 
           <div className="space-y-8 text-white">
             <div className="glass p-8 rounded-3xl sticky top-32">
-              <h3 className="text-lg font-bold mb-6">Cloud Status</h3>
+              <h3 className="text-lg font-bold mb-6">시스템 요약</h3>
               <div className="space-y-4">
                 <div className="p-4 rounded-xl bg-[#8B5CF6]/10 border border-[#8B5CF6]/20">
                   <p className="text-xs text-gray-400 mb-1">DB Connection</p>
                   <p className="text-2xl font-black text-[#8B5CF6]">Active</p>
                 </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                  <p className="text-xs text-gray-400 mb-1">Last Sync</p>
-                  <p className="text-lg font-bold">Just Now</p>
+                  <p className="text-xs text-gray-400 mb-1">Data Storage</p>
+                  <p className="text-lg font-bold">Local Computer</p>
                 </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                   <p className="text-xs text-gray-400 mb-1">Data Volume</p>
@@ -386,9 +388,9 @@ const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, up
               
               <div className="mt-8 pt-8 border-t border-white/10">
                 <div className="p-4 rounded-xl bg-blue-600/10 border border-blue-600/20 mb-4">
-                  <p className="text-[11px] text-blue-400 font-bold mb-1 uppercase">Cloud Note</p>
+                  <p className="text-[11px] text-blue-400 font-bold mb-1 uppercase">중요 사항</p>
                   <p className="text-[10px] text-gray-500 leading-relaxed">
-                    이 관리자 페이지에서 수정된 내용은 실시간으로 클라우드 데이터베이스에 동기화되어 모든 방문자에게 즉시 공개됩니다.
+                    상단의 <strong>수정사항 최종 반영</strong> 버튼을 누르면 현재 브라우저에 데이터가 영구히 저장됩니다. 이미지 URL이 정확한지 확인 후 저장해주세요.
                   </p>
                 </div>
               </div>

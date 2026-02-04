@@ -52,25 +52,13 @@ const App: React.FC = () => {
     );
   }
 
-  const handleUpdateState = async (newState: AppState) => {
+  // 관리자 페이지에서 모든 수정을 한 번에 저장하는 통합 함수
+  const updateAllState = async (newState: AppState) => {
     setState(newState);
-    await db.saveState(newState);
-  };
-
-  const updateSettings = (newSettings: SiteSettings) => {
-    handleUpdateState({ ...state, settings: newSettings });
-  };
-
-  const updateServices = (newServices: ServiceItem[]) => {
-    handleUpdateState({ ...state, services: newServices });
-  };
-
-  const updatePortfolio = (newPortfolio: PortfolioItem[]) => {
-    handleUpdateState({ ...state, portfolio: newPortfolio });
-  };
-
-  const updateAbout = (newAbout: AboutContent) => {
-    handleUpdateState({ ...state, about: newAbout });
+    const success = await db.saveState(newState);
+    if (!success) {
+      alert("데이터 저장 중 오류가 발생했습니다. 다시 시도해주세요.");
+    }
   };
 
   return (
@@ -161,10 +149,7 @@ const App: React.FC = () => {
             <Route path="/admin" element={
               <Admin 
                 state={state} 
-                updateSettings={updateSettings} 
-                updateServices={updateServices} 
-                updatePortfolio={updatePortfolio}
-                updateAbout={updateAbout}
+                onSaveAll={updateAllState}
               />
             } />
           </Routes>

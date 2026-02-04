@@ -2,7 +2,7 @@
 import { AppState } from '../types';
 import { INITIAL_SETTINGS, INITIAL_SERVICES, INITIAL_PORTFOLIO, INITIAL_ABOUT } from '../constants';
 
-const DB_KEY = 'injeng_ec_cloud_db_v2';
+const DB_KEY = 'injeng_ec_local_db_v3';
 
 class DatabaseService {
   private static instance: DatabaseService;
@@ -16,7 +16,7 @@ class DatabaseService {
     return DatabaseService.instance;
   }
 
-  // 실제 온라인 DB에서 데이터를 가져오는 것을 시뮬레이션 (네트워크 지연 추가)
+  // 로컬 컴퓨터 DB에서 데이터를 가져오는 함수
   async fetchState(): Promise<AppState> {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -24,33 +24,37 @@ class DatabaseService {
         if (saved) {
           try {
             const parsed = JSON.parse(saved);
-            // 필드 누락 방지 (마이그레이션)
-            if (!parsed.about) parsed.about = INITIAL_ABOUT;
-            resolve(parsed);
+            // 버전 업데이트 시 누락될 수 있는 필드들 기본값 채워줌 (하위 호환성)
+            const sanitized = {
+              settings: { ...INITIAL_SETTINGS, ...parsed.settings },
+              services: parsed.services || INITIAL_SERVICES,
+              portfolio: parsed.portfolio || INITIAL_PORTFOLIO,
+              about: { ...INITIAL_ABOUT, ...parsed.about }
+            };
+            resolve(sanitized);
           } catch (e) {
-            console.error("DB Parse Error", e);
+            console.error("DB 로딩 에러:", e);
             resolve(this.getDefaultState());
           }
         } else {
           resolve(this.getDefaultState());
         }
-      }, 1200); // 1.2초 로딩 시뮬레이션
+      }, 800);
     });
   }
 
-  // 온라인 DB에 데이터를 저장하는 것을 시뮬레이션
+  // 로컬 컴퓨터 DB에 데이터를 영구 저장하는 함수
   async saveState(state: AppState): Promise<boolean> {
     return new Promise((resolve) => {
-      setTimeout(() => {
-        try {
-          localStorage.setItem(DB_KEY, JSON.stringify(state));
-          console.log("Cloud DB Synced Success");
-          resolve(true);
-        } catch (e) {
-          console.error("Cloud DB Sync Failed", e);
-          resolve(false);
-        }
-      }, 800);
+      try {
+        // 즉시 동기화
+        localStorage.setItem(DB_KEY, JSON.stringify(state));
+        console.log("로컬 DB 저장 완료");
+        setTimeout(() => resolve(true), 500);
+      } catch (e) {
+        console.error("로컬 DB 저장 실패:", e);
+        resolve(false);
+      }
     });
   }
 
