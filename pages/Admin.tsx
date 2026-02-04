@@ -10,10 +10,24 @@ interface AdminProps {
 }
 
 const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, updatePortfolio }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
   const [settingsForm, setSettingsForm] = useState<SiteSettings>(state.settings);
   const [servicesForm, setServicesForm] = useState<ServiceItem[]>(state.services);
   const [portfolioForm, setPortfolioForm] = useState<PortfolioItem[]>(state.portfolio);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === '01056743549') {
+      setIsAuthenticated(true);
+      setError('');
+    } else {
+      setError('비밀번호가 일치하지 않습니다.');
+    }
+  };
 
   const handleSave = () => {
     setSaveStatus('saving');
@@ -34,6 +48,40 @@ const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, up
     setPortfolioForm(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center px-6">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-[#8B5CF6] rounded-full blur-[150px] opacity-10"></div>
+        <div className="glass p-12 rounded-[40px] w-full max-w-md relative z-10 text-center">
+          <div className="w-16 h-16 bg-[#8B5CF6] rounded-2xl flex items-center justify-center text-white font-normal text-2xl mx-auto mb-8 shadow-xl shadow-[#8B5CF6]/30">
+            <span style={{ fontFamily: "'Righteous', cursive" }}>IJ</span>
+          </div>
+          <h2 className="text-3xl font-black mb-2 text-white">Admin Access</h2>
+          <p className="text-gray-500 mb-8 text-sm">관리자 비밀번호를 입력해주세요.</p>
+          
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="relative">
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="비밀번호 입력"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-center focus:outline-none focus:border-[#8B5CF6] text-white transition-all tracking-[0.5em]"
+              />
+            </div>
+            {error && <p className="text-red-500 text-xs font-bold">{error}</p>}
+            <button 
+              type="submit"
+              className="w-full py-4 bg-[#8B5CF6] text-white font-bold rounded-2xl hover:bg-[#7C3AED] transition-all purple-glow"
+            >
+              접속하기
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pt-32 pb-24 bg-[#080808] min-h-screen">
       <div className="container mx-auto px-6">
@@ -42,13 +90,21 @@ const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, up
             <h1 className="text-4xl font-black mb-2 text-white">관리자 대시보드</h1>
             <p className="text-gray-500">웹사이트의 모든 콘텐츠를 실시간으로 제어합니다.</p>
           </div>
-          <button 
-            onClick={handleSave}
-            disabled={saveStatus === 'saving'}
-            className={`px-10 py-4 rounded-xl font-bold transition-all ${saveStatus === 'saved' ? 'bg-green-600' : 'bg-[#8B5CF6] hover:bg-[#7C3AED]'} purple-glow disabled:opacity-50 shadow-lg text-white`}
-          >
-            {saveStatus === 'saving' ? '저장 중...' : saveStatus === 'saved' ? '저장 완료!' : '모든 변경사항 저장'}
-          </button>
+          <div className="flex items-center gap-4">
+             <button 
+                onClick={() => setIsAuthenticated(false)}
+                className="px-6 py-4 text-xs font-bold text-gray-500 hover:text-white transition-colors"
+              >
+                로그아웃
+              </button>
+              <button 
+                onClick={handleSave}
+                disabled={saveStatus === 'saving'}
+                className={`px-10 py-4 rounded-xl font-bold transition-all ${saveStatus === 'saved' ? 'bg-green-600' : 'bg-[#8B5CF6] hover:bg-[#7C3AED]'} purple-glow disabled:opacity-50 shadow-lg text-white`}
+              >
+                {saveStatus === 'saving' ? '저장 중...' : saveStatus === 'saved' ? '저장 완료!' : '모든 변경사항 저장'}
+              </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
