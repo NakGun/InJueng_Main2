@@ -27,7 +27,7 @@ const Home: React.FC<HomeProps> = ({ state }) => {
               </span>
             ))}
           </h1>
-          <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-12 animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
+          <p className="text-gray-400 text-lg md:text-xl max-w-4xl mx-auto mb-12 animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
             에어컨 세척부터 대형 건물 관리까지, 전문가의 손길로 공간에 새로운 숨결을 불어넣습니다.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fadeInUp" style={{ animationDelay: '0.6s' }}>
