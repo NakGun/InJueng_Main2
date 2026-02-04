@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AppState, SiteSettings, ServiceItem, PortfolioItem, AboutContent } from '../types';
+import { db } from '../services/db';
 
 interface AdminProps {
   state: AppState;
@@ -12,20 +13,28 @@ const Admin: React.FC<AdminProps> = ({ state, onSaveAll }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  // 개별 폼 상태 관리
   const [settingsForm, setSettingsForm] = useState<SiteSettings>(state.settings);
   const [servicesForm, setServicesForm] = useState<ServiceItem[]>(state.services);
   const [portfolioForm, setPortfolioForm] = useState<PortfolioItem[]>(state.portfolio);
   const [aboutForm, setAboutForm] = useState<AboutContent>(state.about);
+  
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [isLocalFileConnected, setIsLocalFileConnected] = useState(false);
 
-  // 외부(AppState)의 변화를 폼에 동기화 (저장 확인용)
   useEffect(() => {
     setSettingsForm(state.settings);
     setServicesForm(state.services);
     setPortfolioForm(state.portfolio);
     setAboutForm(state.about);
   }, [state]);
+
+  const handleConnectLocal = async () => {
+    const success = await db.connectLocalFile();
+    if (success) {
+      setIsLocalFileConnected(true);
+      alert("내 컴퓨터의 DB 파일이 성공적으로 연결되었습니다. 이제 저장 시 이 파일에 내용이 기록됩니다.");
+    }
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,18 +48,13 @@ const Admin: React.FC<AdminProps> = ({ state, onSaveAll }) => {
 
   const handleSave = async () => {
     setSaveStatus('saving');
-    
-    // 현재 폼에 입력된 모든 데이터를 하나의 AppState 객체로 결합
     const updatedState: AppState = {
       settings: settingsForm,
       services: servicesForm,
       portfolio: portfolioForm,
       about: aboutForm
     };
-    
-    // 통합 저장 함수 호출 (App.tsx -> db.ts 로 연결됨)
     await onSaveAll(updatedState);
-    
     setSaveStatus('saved');
     setTimeout(() => setSaveStatus('idle'), 2000);
   };
@@ -81,6 +85,17 @@ const Admin: React.FC<AdminProps> = ({ state, onSaveAll }) => {
     }
   };
 
+  // JSON 파일 내보내기 (백업용)
+  const handleExport = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({settings: settingsForm, services: servicesForm, portfolio: portfolioForm, about: aboutForm}, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href",     dataStr);
+    downloadAnchorNode.setAttribute("download", "injeng_db_backup.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center px-6">
@@ -91,24 +106,16 @@ const Admin: React.FC<AdminProps> = ({ state, onSaveAll }) => {
           </div>
           <h2 className="text-3xl font-black mb-2 text-white">Admin Access</h2>
           <p className="text-gray-500 mb-8 text-sm">관리자 비밀번호를 입력해주세요.</p>
-          
           <form onSubmit={handleLogin} className="space-y-4">
-            <div className="relative">
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="비밀번호 입력"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-center focus:outline-none focus:border-[#8B5CF6] text-white transition-all tracking-[0.5em]"
-              />
-            </div>
+            <input 
+              type="password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="비밀번호 입력"
+              className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-center focus:outline-none focus:border-[#8B5CF6] text-white transition-all tracking-[0.5em]"
+            />
             {error && <p className="text-red-500 text-xs font-bold">{error}</p>}
-            <button 
-              type="submit"
-              className="w-full py-4 bg-[#8B5CF6] text-white font-bold rounded-2xl hover:bg-[#7C3AED] transition-all purple-glow"
-            >
-              접속하기
-            </button>
+            <button type="submit" className="w-full py-4 bg-[#8B5CF6] text-white font-bold rounded-2xl hover:bg-[#7C3AED] transition-all">접속하기</button>
           </form>
         </div>
       </div>
@@ -121,160 +128,75 @@ const Admin: React.FC<AdminProps> = ({ state, onSaveAll }) => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
           <div>
             <h1 className="text-4xl font-black mb-2 text-white">관리자 대시보드</h1>
-            <div className="flex items-center gap-2">
-               <div className={`w-2 h-2 rounded-full ${saveStatus === 'saving' ? 'bg-yellow-500 animate-ping' : 'bg-green-500'}`}></div>
-               <p className="text-gray-500 text-sm">로컬 DB 상태: {saveStatus === 'saving' ? '데이터 동기화 중...' : '연결됨'}</p>
+            <div className="flex items-center gap-4">
+               <div className="flex items-center gap-2">
+                 <div className={`w-2 h-2 rounded-full ${isLocalFileConnected ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`}></div>
+                 <p className="text-gray-500 text-xs">로컬 파일: {isLocalFileConnected ? '연결됨' : '연결 필요'}</p>
+               </div>
+               <div className="flex items-center gap-2">
+                 <div className={`w-2 h-2 rounded-full ${saveStatus === 'saving' ? 'bg-yellow-500 animate-ping' : 'bg-[#8B5CF6]'}`}></div>
+                 <p className="text-gray-500 text-xs">웹 배포 상태: {saveStatus === 'saving' ? '배포 중...' : '온라인 대기'}</p>
+               </div>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+             <button onClick={handleConnectLocal} className="px-5 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-bold rounded-xl transition-all">내 폴더 DB 연결</button>
+             <button onClick={handleExport} className="px-5 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-bold rounded-xl transition-all">JSON 백업</button>
              <button 
-                onClick={() => setIsAuthenticated(false)}
-                className="px-6 py-4 text-xs font-bold text-gray-500 hover:text-white transition-colors"
-              >
-                로그아웃
-              </button>
-              <button 
                 onClick={handleSave}
                 disabled={saveStatus === 'saving'}
-                className={`px-10 py-4 rounded-xl font-bold transition-all flex items-center gap-3 ${saveStatus === 'saved' ? 'bg-green-600' : 'bg-[#8B5CF6] hover:bg-[#7C3AED]'} purple-glow disabled:opacity-50 shadow-lg text-white`}
+                className={`px-8 py-3 rounded-xl font-bold transition-all text-sm flex items-center gap-2 ${saveStatus === 'saved' ? 'bg-green-600' : 'bg-[#8B5CF6] hover:bg-[#7C3AED]'} text-white shadow-lg`}
               >
-                {saveStatus === 'saving' && (
-                  <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                )}
-                {saveStatus === 'saving' ? '내 컴퓨터에 저장 중...' : saveStatus === 'saved' ? '저장 완료!' : '수정사항 최종 반영'}
+                {saveStatus === 'saving' ? '온라인 배포 중...' : saveStatus === 'saved' ? '배포 완료!' : '수정사항 최종 배포'}
               </button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-12">
-            
             {/* 기본 정보 */}
             <div className="glass p-8 rounded-3xl">
-              <h3 className="text-xl font-bold mb-8 border-b border-white/10 pb-4 flex items-center gap-2 text-white">
-                <span className="w-2 h-6 bg-[#8B5CF6] rounded-full"></span> 기본 정보 설정
-              </h3>
+              <h3 className="text-xl font-bold mb-8 border-b border-white/10 pb-4 flex items-center gap-2 text-white">기본 정보</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">회사 이름</label>
-                  <input 
-                    value={settingsForm.companyName} 
-                    onChange={(e) => setSettingsForm({...settingsForm, companyName: e.target.value})}
-                    className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none transition-colors" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">대표 연락처</label>
-                  <input 
-                    value={settingsForm.phone} 
-                    onChange={(e) => setSettingsForm({...settingsForm, phone: e.target.value})}
-                    className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none transition-colors" 
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">메인 슬로건</label>
-                  <input 
-                    value={settingsForm.slogan} 
-                    onChange={(e) => setSettingsForm({...settingsForm, slogan: e.target.value})}
-                    className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none transition-colors" 
-                  />
-                </div>
+                <input value={settingsForm.companyName} onChange={(e) => setSettingsForm({...settingsForm, companyName: e.target.value})} className="bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none" placeholder="회사명" />
+                <input value={settingsForm.phone} onChange={(e) => setSettingsForm({...settingsForm, phone: e.target.value})} className="bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none" placeholder="연락처" />
+                <input value={settingsForm.slogan} onChange={(e) => setSettingsForm({...settingsForm, slogan: e.target.value})} className="md:col-span-2 bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none" placeholder="메인 슬로건" />
               </div>
             </div>
 
-            {/* 회사소개 관리 */}
+            {/* 회사소개 */}
             <div className="glass p-8 rounded-3xl">
-              <h3 className="text-xl font-bold mb-8 border-b border-white/10 pb-4 flex items-center gap-2 text-white">
-                <span className="w-2 h-6 bg-green-500 rounded-full"></span> 회사소개(About) 관리
-              </h3>
+              <h3 className="text-xl font-bold mb-8 border-b border-white/10 pb-4 text-white">회사소개(About)</h3>
               <div className="space-y-6">
+                <input value={aboutForm.title} onChange={(e) => setAboutForm({...aboutForm, title: e.target.value})} className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none" />
+                <textarea value={aboutForm.subtitle} rows={2} onChange={(e) => setAboutForm({...aboutForm, subtitle: e.target.value})} className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">대제목</label>
-                    <input 
-                      value={aboutForm.title} 
-                      onChange={(e) => setAboutForm({...aboutForm, title: e.target.value})}
-                      className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none transition-colors" 
-                    />
+                    <label className="text-[10px] text-gray-500">이미지 주소</label>
+                    <input value={aboutForm.image} onChange={(e) => setAboutForm({...aboutForm, image: e.target.value})} className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none" />
                   </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">소제목 (강조 문구)</label>
-                    <textarea 
-                      value={aboutForm.subtitle} 
-                      rows={2}
-                      onChange={(e) => setAboutForm({...aboutForm, subtitle: e.target.value})}
-                      className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none transition-colors" 
-                    />
+                  <div className="space-y-4">
+                    <textarea value={aboutForm.p1} rows={3} onChange={(e) => setAboutForm({...aboutForm, p1: e.target.value})} className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-gray-400 outline-none" />
+                    <textarea value={aboutForm.p2} rows={3} onChange={(e) => setAboutForm({...aboutForm, p2: e.target.value})} className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-gray-400 outline-none" />
                   </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div className="space-y-4">
-                      <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">대표 이미지 URL</label>
-                      <img src={aboutForm.image} className="w-full h-48 object-cover rounded-xl border border-white/10 mb-4" />
-                      <input 
-                        value={aboutForm.image} 
-                        onChange={(e) => setAboutForm({...aboutForm, image: e.target.value})}
-                        className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none transition-colors" 
-                      />
-                   </div>
-                   <div className="space-y-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">문단 1</label>
-                        <textarea 
-                          value={aboutForm.p1} 
-                          rows={4}
-                          onChange={(e) => setAboutForm({...aboutForm, p1: e.target.value})}
-                          className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-gray-400 focus:border-[#8B5CF6] outline-none transition-colors" 
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">문단 2</label>
-                        <textarea 
-                          value={aboutForm.p2} 
-                          rows={4}
-                          onChange={(e) => setAboutForm({...aboutForm, p2: e.target.value})}
-                          className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-gray-400 focus:border-[#8B5CF6] outline-none transition-colors" 
-                        />
-                      </div>
-                   </div>
                 </div>
               </div>
             </div>
 
             {/* 서비스 관리 */}
             <div className="glass p-8 rounded-3xl">
-              <h3 className="text-xl font-bold mb-8 border-b border-white/10 pb-4 flex items-center gap-2 text-white">
-                <span className="w-2 h-6 bg-[#8B5CF6] rounded-full"></span> 주요 서비스 관리
-              </h3>
+              <h3 className="text-xl font-bold mb-8 border-b border-white/10 pb-4 text-white">주요 서비스 관리</h3>
               <div className="space-y-8">
                 {servicesForm.map((service) => (
                   <div key={service.id} className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-4">
                     <div className="flex flex-col md:flex-row gap-6">
                       <div className="w-full md:w-1/3">
                         <img src={service.image} className="w-full h-32 object-cover rounded-xl mb-3 border border-white/10" />
-                        <label className="block text-[10px] text-gray-500 mb-1">이미지 주소 (URL)</label>
-                        <input 
-                          value={service.image} 
-                          onChange={(e) => handleServiceChange(service.id, 'image', e.target.value)}
-                          placeholder="이미지 주소를 입력하세요"
-                          className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-[11px] text-white focus:border-[#8B5CF6] outline-none" 
-                        />
+                        <input value={service.image} onChange={(e) => handleServiceChange(service.id, 'image', e.target.value)} className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-[11px] text-white outline-none" />
                       </div>
                       <div className="flex-1 space-y-4">
-                        <input 
-                          value={service.title} 
-                          onChange={(e) => handleServiceChange(service.id, 'title', e.target.value)}
-                          className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-[#8B5CF6] outline-none font-bold" 
-                        />
-                        <textarea 
-                          value={service.description} 
-                          rows={3}
-                          onChange={(e) => handleServiceChange(service.id, 'description', e.target.value)}
-                          className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-400 focus:border-[#8B5CF6] outline-none" 
-                        />
+                        <input value={service.title} onChange={(e) => handleServiceChange(service.id, 'title', e.target.value)} className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-bold" />
+                        <textarea value={service.description} rows={3} onChange={(e) => handleServiceChange(service.id, 'description', e.target.value)} className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-400" />
                       </div>
                     </div>
                   </div>
@@ -282,115 +204,56 @@ const Admin: React.FC<AdminProps> = ({ state, onSaveAll }) => {
               </div>
             </div>
 
-            {/* 시공사례 관리 */}
+            {/* 시공사례 */}
             <div className="glass p-8 rounded-3xl">
               <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
-                <h3 className="text-xl font-bold flex items-center gap-2 text-white">
-                  <span className="w-2 h-6 bg-blue-500 rounded-full"></span> 시공사례(포트폴리오) 관리
-                </h3>
-                <button 
-                  onClick={handleAddPortfolio}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                  시공 사례 추가
-                </button>
+                <h3 className="text-xl font-bold text-white">시공사례 관리</h3>
+                <button onClick={handleAddPortfolio} className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-500 transition-all">+ 사례 추가</button>
               </div>
-              
               <div className="space-y-8">
-                {portfolioForm.length === 0 && (
-                  <div className="text-center py-12 text-gray-500 border-2 border-dashed border-white/5 rounded-2xl">
-                    등록된 시공 사례가 없습니다. 우측 상단 버튼을 눌러 추가하세요.
-                  </div>
-                )}
                 {portfolioForm.map((item) => (
-                  <div key={item.id} className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-4 relative group">
-                    <button 
-                      onClick={() => handleDeletePortfolio(item.id)}
-                      className="absolute top-4 right-4 p-2 bg-red-600/20 text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 hover:text-white"
-                      title="삭제"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
-                    
+                  <div key={item.id} className="p-6 rounded-2xl bg-white/5 border border-white/5 relative group">
+                    <button onClick={() => handleDeletePortfolio(item.id)} className="absolute top-4 right-4 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">삭제</button>
                     <div className="flex flex-col md:flex-row gap-6">
                       <div className="w-full md:w-1/3">
                         <img src={item.image} className="w-full h-40 object-cover rounded-xl mb-3 border border-white/10" />
-                        <label className="block text-[10px] text-gray-500 mb-1">이미지 주소 (URL)</label>
-                        <input 
-                          value={item.image} 
-                          onChange={(e) => handlePortfolioChange(item.id, 'image', e.target.value)}
-                          className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-[11px] text-white focus:border-[#8B5CF6] outline-none" 
-                        />
+                        <input value={item.image} onChange={(e) => handlePortfolioChange(item.id, 'image', e.target.value)} className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-[11px] text-white" />
                       </div>
                       <div className="flex-1 space-y-4">
+                        <input value={item.title} onChange={(e) => handlePortfolioChange(item.id, 'title', e.target.value)} className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white font-bold" />
                         <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-[10px] text-gray-500 mb-1">시공명</label>
-                            <input 
-                              value={item.title} 
-                              onChange={(e) => handlePortfolioChange(item.id, 'title', e.target.value)}
-                              className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-[#8B5CF6] outline-none font-bold" 
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] text-gray-500 mb-1">카테고리</label>
-                            <input 
-                              value={item.category} 
-                              onChange={(e) => handlePortfolioChange(item.id, 'category', e.target.value)}
-                              className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-[#8B5CF6] focus:border-[#8B5CF6] outline-none" 
-                            />
-                          </div>
+                          <input value={item.category} onChange={(e) => handlePortfolioChange(item.id, 'category', e.target.value)} className="bg-black border border-white/10 rounded-lg px-3 py-2 text-xs text-[#8B5CF6]" />
+                          <input value={item.date} onChange={(e) => handlePortfolioChange(item.id, 'date', e.target.value)} className="bg-black border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-500" />
                         </div>
-                        <div>
-                          <label className="block text-[10px] text-gray-500 mb-1">시공 날짜</label>
-                          <input 
-                            value={item.date} 
-                            onChange={(e) => handlePortfolioChange(item.id, 'date', e.target.value)}
-                            className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-500 focus:border-[#8B5CF6] outline-none" 
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] text-gray-500 mb-1">간략 설명</label>
-                          <textarea 
-                            value={item.description} 
-                            rows={2}
-                            onChange={(e) => handlePortfolioChange(item.id, 'description', e.target.value)}
-                            className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-400 focus:border-[#8B5CF6] outline-none" 
-                          />
-                        </div>
+                        <textarea value={item.description} rows={2} onChange={(e) => handlePortfolioChange(item.id, 'description', e.target.value)} className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-400" />
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-
           </div>
 
           <div className="space-y-8 text-white">
             <div className="glass p-8 rounded-3xl sticky top-32">
-              <h3 className="text-lg font-bold mb-6">시스템 요약</h3>
+              <h3 className="text-lg font-bold mb-6">DB & Cloud 상태</h3>
               <div className="space-y-4">
                 <div className="p-4 rounded-xl bg-[#8B5CF6]/10 border border-[#8B5CF6]/20">
-                  <p className="text-xs text-gray-400 mb-1">DB Connection</p>
-                  <p className="text-2xl font-black text-[#8B5CF6]">Active</p>
+                  <p className="text-xs text-gray-400 mb-1">Local Sync</p>
+                  <p className={`text-xl font-black ${isLocalFileConnected ? 'text-green-500' : 'text-red-500'}`}>
+                    {isLocalFileConnected ? '내 컴퓨터 폴더 연결됨' : '연결 안 됨'}
+                  </p>
                 </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                  <p className="text-xs text-gray-400 mb-1">Data Storage</p>
-                  <p className="text-lg font-bold">Local Computer</p>
-                </div>
-                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                  <p className="text-xs text-gray-400 mb-1">Data Volume</p>
-                  <p className="text-lg font-bold">{(JSON.stringify(state).length / 1024).toFixed(2)} KB</p>
+                  <p className="text-xs text-gray-400 mb-1">Web Deployment</p>
+                  <p className="text-lg font-bold">전 세계 방문자 공유 중</p>
                 </div>
               </div>
-              
               <div className="mt-8 pt-8 border-t border-white/10">
-                <div className="p-4 rounded-xl bg-blue-600/10 border border-blue-600/20 mb-4">
-                  <p className="text-[11px] text-blue-400 font-bold mb-1 uppercase">중요 사항</p>
+                <div className="p-4 rounded-xl bg-blue-600/10 border border-blue-600/20">
+                  <p className="text-[11px] text-blue-400 font-bold mb-1 uppercase">도움말: 로컬 폴더 연동</p>
                   <p className="text-[10px] text-gray-500 leading-relaxed">
-                    상단의 <strong>수정사항 최종 반영</strong> 버튼을 누르면 현재 브라우저에 데이터가 영구히 저장됩니다. 이미지 URL이 정확한지 확인 후 저장해주세요.
+                    상단의 '내 폴더 DB 연결' 버튼을 눌러 컴퓨터에 있는 JSON 파일을 선택하면, 웹사이트 수정 시 해당 파일이 자동으로 업데이트됩니다.
                   </p>
                 </div>
               </div>
