@@ -14,27 +14,26 @@ export const INITIAL_SERVICES: ServiceItem[] = [
   {
     id: "ac-cleaning",
     title: "에어컨 분해 정밀 세척",
-    description: "천장형(4Way, 1Way), 스탠드, 벽걸이 등 모든 기종을 완전 분해하여 내부 곰팡이와 미세먼지를 완벽하게 제거합니다. 전문 세척 가드를 사용하여 주변 오염 없이 깔끔하게 시공합니다.",
-    // 사용자가 제공한 전문 세척 가드 시공 사진과 유사한 고해상도 이미지 적용
-    image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop",
+    description: "천장형(4Way, 1Way), 스탠드, 벽걸이 등 모든 기종을 완전 분해하여 세척합니다. 전문 세척 가드를 설치하여 오염물 비산 없이 내부 곰팡이와 미세먼지를 99.9% 완벽 제거합니다.",
+    image: "https://shopping-phinf.pstatic.net/main_3232147/32321478207.20220511111636.jpg",
     icon: "ac"
   },
   {
     id: "building-cleaning",
     title: "건물 외벽 및 유리창 관리",
-    description: "고압 세척 및 전용 약품을 사용하여 건물의 가치를 보존하고 품격을 높입니다. 정기적인 외벽 관리는 건물의 수명을 연장시킵니다.",
+    description: "고압 세척 및 전용 친환경 약품을 사용하여 건물의 가치를 보존합니다. 정기적인 외벽 관리는 건물의 미관뿐만 아니라 수명을 연장시키는 핵심 요소입니다.",
     image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop"
   },
   {
     id: "office-cleaning",
     title: "사무실 및 상가 정기 관리",
-    description: "쾌적한 업무 환경을 위한 맞춤형 클리닝 프로세스를 제공합니다. 주간/야간 정기 방문을 통해 최상의 위생 상태를 유지해 드립니다.",
+    description: "업무 효율을 높이는 쾌적한 비즈니스 환경을 유지해 드립니다. 바닥 왁싱, 먼지 제거 등 맞춤형 정기 관리 프로세스를 통해 최상의 청결도를 보장합니다.",
     image: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop"
   },
   {
     id: "special-cleaning",
     title: "특수 오염 및 준공 청소",
-    description: "화재 복구, 폐기물 처리, 신축 건물 준공 청소 등 일반적인 방법으로 해결되지 않는 고난도의 특수 현장 관리를 수행합니다.",
+    description: "신축 건물의 준공 청소부터 화재 복구, 폐기물 처리까지 고난도의 특수 현장을 전문 장비로 해결합니다. 까다로운 오염도 인정E&C가 하면 다릅니다.",
     image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=2070&auto=format&fit=crop"
   }
 ];
@@ -42,26 +41,26 @@ export const INITIAL_SERVICES: ServiceItem[] = [
 export const INITIAL_PORTFOLIO: PortfolioItem[] = [
   {
     id: "p1",
-    title: "성남 판교 오피스 빌딩 에어컨 일괄 세척",
+    title: "판교 IT 밸리 사옥 에어컨 120대 세척",
     category: "에어컨 세척",
-    description: "대형 오피스 빌딩 150대 규모의 천장형 에어컨 완전 분해 정밀 세척 완료.",
+    description: "대형 오피스 전 구역 천장형 에어컨 완전 분해 및 살균 소독 작업 완료.",
     image: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?q=80&w=2070&auto=format&fit=crop",
-    date: "2024-03-15"
+    date: "2024-03-20"
   },
   {
     id: "p2",
-    title: "분당 주상복합 외벽 고압 세척",
+    title: "성남 시청 인근 상가 외벽 복원 세척",
     category: "외벽 관리",
-    description: "장기 방치된 외벽 오염 제거 및 특수 코팅 작업을 통한 외관 복원.",
+    description: "노후된 외벽의 찌든 때를 고압 세척으로 제거하고 코팅 작업 진행.",
     image: "https://images.unsplash.com/photo-1545458818-e39396389717?q=80&w=2070&auto=format&fit=crop",
-    date: "2024-02-28"
+    date: "2024-02-15"
   },
   {
     id: "p3",
-    title: "강남 테헤란로 공유오피스 정기 관리",
+    title: "정자동 대형 카페 정기 관리 계약",
     category: "정기 관리",
-    description: "입주사 만족도를 높이기 위한 프리미엄 정기 위생 관리 서비스 체결.",
+    description: "위생이 중요한 F&B 매장의 바닥 및 주방 정기 위생 케어 서비스.",
     image: "https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?q=80&w=2070&auto=format&fit=crop",
-    date: "2024-01-10"
+    date: "2024-01-05"
   }
 ];
