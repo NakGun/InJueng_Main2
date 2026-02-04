@@ -93,7 +93,7 @@ const App: React.FC = () => {
                  <div className="max-w-3xl mb-16 md:mb-20 text-center md:text-left">
                     <h1 className="text-4xl sm:text-6xl md:text-7xl font-black mb-6 md:mb-8 animate-fadeInUp">전문 서비스</h1>
                     <p className="text-gray-400 text-base md:text-xl animate-fadeInUp" style={{animationDelay: '0.2s'}}>
-                      인정E&C는 각 분야별 전문 장비와 전용 약품을 사용하여 단순 청소를 넘어선 정밀 케어 서비스를 제공합니다.
+                      인정ENG는 각 분야별 전문 장비와 전용 약품을 사용하여 단순 청소를 넘어선 정밀 케어 서비스를 제공합니다.
                     </p>
                  </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
@@ -119,7 +119,7 @@ const App: React.FC = () => {
               <div className="pt-32 md:pt-40 pb-24 container mx-auto px-6 text-white">
                 <div className="text-center max-w-2xl mx-auto mb-16 md:mb-20">
                   <h1 className="text-4xl sm:text-6xl font-black mb-6 md:mb-8 animate-fadeInUp">시공 사례</h1>
-                  <p className="text-gray-500 text-sm md:text-base animate-fadeInUp" style={{animationDelay: '0.2s'}}>현장에서 직접 증명한 인정E&C의 퀄리티를 확인하세요.</p>
+                  <p className="text-gray-500 text-sm md:text-base animate-fadeInUp" style={{animationDelay: '0.2s'}}>현장에서 직접 증명한 인정ENG의 퀄리티를 확인하세요.</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
                   {state.portfolio.map((p, idx) => (

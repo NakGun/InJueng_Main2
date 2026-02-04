@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -34,7 +35,7 @@ const Navbar: React.FC = () => {
             <span style={{ fontFamily: "'Righteous', cursive" }}>IJ</span>
           </div>
           <div className="flex flex-col -gap-1">
-            <span className="text-xl font-black tracking-tighter leading-none">인정E&C</span>
+            <span className="text-xl font-black tracking-tighter leading-none">인정ENG</span>
             <span className="text-[9px] font-black tracking-[0.3em] text-[#8B5CF6] uppercase leading-none mt-1">Premium Hygiene</span>
           </div>
         </Link>

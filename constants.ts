@@ -2,7 +2,7 @@
 import { ServiceItem, PortfolioItem, SiteSettings, AboutContent } from './types';
 
 export const INITIAL_SETTINGS: SiteSettings = {
-  companyName: "인정E&C",
+  companyName: "인정ENG",
   slogan: "공간에 새로운 숨결을 불어넣는 전문 위생 솔루션",
   phone: "010-3657-0526",
   email: "ijeng725@gmail.com",
@@ -12,9 +12,9 @@ export const INITIAL_SETTINGS: SiteSettings = {
 };
 
 export const INITIAL_ABOUT: AboutContent = {
-  title: "인정E&C 소개",
+  title: "인정ENG 소개",
   subtitle: "공간의 가치를 보존하는 최고의 기술력",
-  p1: "인정E&C는 에어컨 정밀 세척부터 빌딩 종합 위생 관리까지, 보이지 않는 곳의 청결함이 고객의 삶의 질을 결정한다는 믿음으로 일합니다.",
+  p1: "인정ENG는 에어컨 정밀 세척부터 빌딩 종합 위생 관리까지, 보이지 않는 곳의 청결함이 고객의 삶의 질을 결정한다는 믿음으로 일합니다.",
   p2: "최첨단 내시경 장비와 친환경 세척 공법, 그리고 수만 건의 현장 경험을 보유한 숙련된 전문가 그룹이 당신의 공간을 책임집니다.",
   image: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=1974&auto=format&fit=crop"
 };
@@ -61,7 +61,6 @@ export const INITIAL_PORTFOLIO: PortfolioItem[] = [
     title: "고급 주거 단지 지하주차장 방수 및 코팅",
     category: "특수 방수",
     description: "누수 문제가 발생한 대단지 아파트의 지하 구역에 최신 나노 방수 공법을 적용하여 문제를 근본적으로 해결했습니다.",
-    // 요청하신 이미지 링크로 업데이트
     image: "https://www.shinailbo.co.kr/news/photo/202206/1560433_739297_5723.jpg",
     date: "2024-04-28"
   },
