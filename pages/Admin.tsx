@@ -1,15 +1,16 @@
 
 import React, { useState } from 'react';
-import { AppState, SiteSettings, ServiceItem, PortfolioItem } from '../types';
+import { AppState, SiteSettings, ServiceItem, PortfolioItem, AboutContent } from '../types';
 
 interface AdminProps {
   state: AppState;
   updateSettings: (newSettings: SiteSettings) => void;
   updateServices: (newServices: ServiceItem[]) => void;
   updatePortfolio: (newPortfolio: PortfolioItem[]) => void;
+  updateAbout: (newAbout: AboutContent) => void;
 }
 
-const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, updatePortfolio }) => {
+const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, updatePortfolio, updateAbout }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,6 +18,7 @@ const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, up
   const [settingsForm, setSettingsForm] = useState<SiteSettings>(state.settings);
   const [servicesForm, setServicesForm] = useState<ServiceItem[]>(state.services);
   const [portfolioForm, setPortfolioForm] = useState<PortfolioItem[]>(state.portfolio);
+  const [aboutForm, setAboutForm] = useState<AboutContent>(state.about);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   const handleLogin = (e: React.FormEvent) => {
@@ -35,6 +37,7 @@ const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, up
       updateSettings(settingsForm);
       updateServices(servicesForm);
       updatePortfolio(portfolioForm);
+      updateAbout(aboutForm);
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     }, 800);
@@ -46,6 +49,24 @@ const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, up
 
   const handlePortfolioChange = (id: string, field: keyof PortfolioItem, value: string) => {
     setPortfolioForm(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
+  const handleAddPortfolio = () => {
+    const newItem: PortfolioItem = {
+      id: `p${Date.now()}`,
+      title: "새로운 시공 사례",
+      category: "카테고리 입력",
+      description: "시공에 대한 상세 설명을 입력하세요.",
+      image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?q=80&w=2070&auto=format&fit=crop",
+      date: new Date().toISOString().split('T')[0]
+    };
+    setPortfolioForm(prev => [newItem, ...prev]);
+  };
+
+  const handleDeletePortfolio = (id: string) => {
+    if (window.confirm('이 시공 사례를 정말 삭제하시겠습니까?')) {
+      setPortfolioForm(prev => prev.filter(p => p.id !== id));
+    }
   };
 
   if (!isAuthenticated) {
@@ -143,6 +164,65 @@ const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, up
               </div>
             </div>
 
+            {/* 회사소개 관리 */}
+            <div className="glass p-8 rounded-3xl">
+              <h3 className="text-xl font-bold mb-8 border-b border-white/10 pb-4 flex items-center gap-2 text-white">
+                <span className="w-2 h-6 bg-green-500 rounded-full"></span> 회사소개(About) 관리
+              </h3>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">대제목</label>
+                    <input 
+                      value={aboutForm.title} 
+                      onChange={(e) => setAboutForm({...aboutForm, title: e.target.value})}
+                      className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none transition-colors" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">소제목 (강조 문구)</label>
+                    <textarea 
+                      value={aboutForm.subtitle} 
+                      rows={2}
+                      onChange={(e) => setAboutForm({...aboutForm, subtitle: e.target.value})}
+                      className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none transition-colors" 
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                   <div className="space-y-4">
+                      <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">대표 이미지 URL</label>
+                      <img src={aboutForm.image} className="w-full h-48 object-cover rounded-xl border border-white/10 mb-4" />
+                      <input 
+                        value={aboutForm.image} 
+                        onChange={(e) => setAboutForm({...aboutForm, image: e.target.value})}
+                        className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none transition-colors" 
+                      />
+                   </div>
+                   <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">문단 1</label>
+                        <textarea 
+                          value={aboutForm.p1} 
+                          rows={4}
+                          onChange={(e) => setAboutForm({...aboutForm, p1: e.target.value})}
+                          className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-gray-400 focus:border-[#8B5CF6] outline-none transition-colors" 
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">문단 2</label>
+                        <textarea 
+                          value={aboutForm.p2} 
+                          rows={4}
+                          onChange={(e) => setAboutForm({...aboutForm, p2: e.target.value})}
+                          className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-gray-400 focus:border-[#8B5CF6] outline-none transition-colors" 
+                        />
+                      </div>
+                   </div>
+                </div>
+              </div>
+            </div>
+
             {/* 서비스 관리 */}
             <div className="glass p-8 rounded-3xl">
               <h3 className="text-xl font-bold mb-8 border-b border-white/10 pb-4 flex items-center gap-2 text-white">
@@ -182,12 +262,35 @@ const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, up
 
             {/* 시공사례 관리 */}
             <div className="glass p-8 rounded-3xl">
-              <h3 className="text-xl font-bold mb-8 border-b border-white/10 pb-4 flex items-center gap-2 text-white">
-                <span className="w-2 h-6 bg-blue-500 rounded-full"></span> 시공사례(포트폴리오) 관리
-              </h3>
+              <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+                <h3 className="text-xl font-bold flex items-center gap-2 text-white">
+                  <span className="w-2 h-6 bg-blue-500 rounded-full"></span> 시공사례(포트폴리오) 관리
+                </h3>
+                <button 
+                  onClick={handleAddPortfolio}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                  시공 사례 추가
+                </button>
+              </div>
+              
               <div className="space-y-8">
+                {portfolioForm.length === 0 && (
+                  <div className="text-center py-12 text-gray-500 border-2 border-dashed border-white/5 rounded-2xl">
+                    등록된 시공 사례가 없습니다. 우측 상단 버튼을 눌러 추가하세요.
+                  </div>
+                )}
                 {portfolioForm.map((item) => (
-                  <div key={item.id} className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-4">
+                  <div key={item.id} className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-4 relative group">
+                    <button 
+                      onClick={() => handleDeletePortfolio(item.id)}
+                      className="absolute top-4 right-4 p-2 bg-red-600/20 text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 hover:text-white"
+                      title="삭제"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                    
                     <div className="flex flex-col md:flex-row gap-6">
                       <div className="w-full md:w-1/3">
                         <img src={item.image} className="w-full h-40 object-cover rounded-xl mb-3 border border-white/10" />
@@ -262,8 +365,14 @@ const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, up
               </div>
               
               <div className="mt-8 pt-8 border-t border-white/10">
-                <p className="text-xs text-gray-500 leading-relaxed">
-                  * 사진 변경: 이미지를 웹(구글 드라이브, 블로그 등)에 업로드 후 해당 이미지 주소를 복사하여 붙여넣으세요.
+                <div className="p-4 rounded-xl bg-blue-600/10 border border-blue-600/20 mb-4">
+                  <p className="text-[11px] text-blue-400 font-bold mb-1 uppercase">Tip: 이미지 등록</p>
+                  <p className="text-[10px] text-gray-500 leading-relaxed">
+                    구글 드라이브나 블로그에 사진을 올린 뒤 '이미지 주소 복사'를 통해 URL을 입력하면 즉시 반영됩니다.
+                  </p>
+                </div>
+                <p className="text-[10px] text-gray-600">
+                  * 변경사항은 반드시 '모든 변경사항 저장' 버튼을 눌러야 최종 반영됩니다.
                 </p>
               </div>
             </div>

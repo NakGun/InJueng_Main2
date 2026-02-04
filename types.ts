@@ -16,6 +16,14 @@ export interface PortfolioItem {
   date: string;
 }
 
+export interface AboutContent {
+  title: string;
+  subtitle: string;
+  p1: string;
+  p2: string;
+  image: string;
+}
+
 export interface SiteSettings {
   companyName: string;
   slogan: string;
@@ -30,4 +38,5 @@ export interface AppState {
   settings: SiteSettings;
   services: ServiceItem[];
   portfolio: PortfolioItem[];
+  about: AboutContent;
 }

@@ -6,8 +6,8 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import Contact from './pages/Contact';
 import Admin from './pages/Admin';
-import { AppState, SiteSettings, ServiceItem, PortfolioItem } from './types';
-import { INITIAL_SETTINGS, INITIAL_SERVICES, INITIAL_PORTFOLIO } from './constants';
+import { AppState, SiteSettings, ServiceItem, PortfolioItem, AboutContent } from './types';
+import { INITIAL_SETTINGS, INITIAL_SERVICES, INITIAL_PORTFOLIO, INITIAL_ABOUT } from './constants';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -22,7 +22,10 @@ const App: React.FC = () => {
     const saved = localStorage.getItem('injeng_ec_state_v1');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Ensure about exists in parsed state
+        if (!parsed.about) parsed.about = INITIAL_ABOUT;
+        return parsed;
       } catch (e) {
         console.error("Failed to parse saved state", e);
       }
@@ -30,7 +33,8 @@ const App: React.FC = () => {
     return {
       settings: INITIAL_SETTINGS,
       services: INITIAL_SERVICES,
-      portfolio: INITIAL_PORTFOLIO
+      portfolio: INITIAL_PORTFOLIO,
+      about: INITIAL_ABOUT
     };
   });
 
@@ -50,6 +54,10 @@ const App: React.FC = () => {
     setState(prev => ({ ...prev, portfolio: newPortfolio }));
   };
 
+  const updateAbout = (newAbout: AboutContent) => {
+    setState(prev => ({ ...prev, about: newAbout }));
+  };
+
   return (
     <Router>
       <ScrollToTop />
@@ -61,15 +69,17 @@ const App: React.FC = () => {
             <Route path="/about" element={
               <div className="pt-32 md:pt-40 pb-24 container mx-auto px-6 text-white text-center md:text-left">
                 <div className="max-w-4xl mx-auto md:mx-0">
-                  <h1 className="text-4xl sm:text-6xl md:text-7xl font-black mb-8 md:mb-12 animate-fadeInUp">인정E&C 소개</h1>
+                  <h1 className="text-4xl sm:text-6xl md:text-7xl font-black mb-8 md:mb-12 animate-fadeInUp">{state.about.title}</h1>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16 items-center">
                     <div className="space-y-6 md:space-y-8 text-gray-400 leading-relaxed text-base md:text-lg animate-fadeInUp" style={{animationDelay: '0.2s'}}>
-                      <p className="text-white font-bold text-2xl md:text-3xl">공간의 가치를 보존하는<br/><span className="text-[#8B5CF6]">최고의 기술력</span></p>
-                      <p>인정E&C는 에어컨 정밀 세척부터 빌딩 종합 위생 관리까지, 보이지 않는 곳의 청결함이 고객의 삶의 질을 결정한다는 믿음으로 일합니다.</p>
-                      <p>최첨단 내시경 장비와 친환경 세척 공법, 그리고 수만 건의 현장 경험을 보유한 숙련된 전문가 그룹이 당신의 공간을 책임집니다.</p>
+                      <p className="text-white font-bold text-2xl md:text-3xl leading-tight">
+                        {state.about.subtitle.split('\n').map((line, i) => <React.Fragment key={i}>{line}<br/></React.Fragment>)}
+                      </p>
+                      <p>{state.about.p1}</p>
+                      <p>{state.about.p2}</p>
                     </div>
                     <div className="glass rounded-[32px] md:rounded-[40px] p-2 animate-fadeInUp" style={{animationDelay: '0.4s'}}>
-                      <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=1974&auto=format&fit=crop" className="rounded-[28px] md:rounded-[36px] grayscale hover:grayscale-0 transition-all duration-1000" alt="Team" />
+                      <img src={state.about.image} className="rounded-[28px] md:rounded-[36px] grayscale hover:grayscale-0 transition-all duration-1000 object-cover w-full aspect-[4/5]" alt="Company About" />
                     </div>
                   </div>
                 </div>
@@ -139,6 +149,7 @@ const App: React.FC = () => {
                 updateSettings={updateSettings} 
                 updateServices={updateServices} 
                 updatePortfolio={updatePortfolio}
+                updateAbout={updateAbout}
               />
             } />
           </Routes>
