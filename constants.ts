@@ -15,14 +15,14 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     id: "ac-cleaning",
     title: "에어컨 분해 정밀 세척",
     description: "천장형(4Way, 1Way), 스탠드, 벽걸이 등 모든 기종을 완전 분해하여 세척합니다. 전문 세척 가드를 설치하여 오염물 비산 없이 내부 곰팡이와 미세먼지를 99.9% 완벽 제거합니다.",
-    image: "https://shopping-phinf.pstatic.net/main_3232147/32321478207.20220511111636.jpg",
+    image: "https://images.unsplash.com/photo-1604754742629-3e5728249d73?q=80&w=2070&auto=format&fit=crop",
     icon: "ac"
   },
   {
-    id: "building-cleaning",
-    title: "건물 외벽 및 유리창 관리",
-    description: "고압 세척 및 전용 친환경 약품을 사용하여 건물의 가치를 보존합니다. 정기적인 외벽 관리는 건물의 미관뿐만 아니라 수명을 연장시키는 핵심 요소입니다.",
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop"
+    id: "waterproofing",
+    title: "건물 바닥 및 천장 방수처리",
+    description: "건물의 수명을 결정짓는 바닥 코팅 및 천장 방수 솔루션입니다. 누수 차단 및 내구성 강화를 위한 최첨단 공법을 사용하여 고질적인 누수 문제를 완벽하게 해결하고 자산 가치를 보존합니다.",
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=2070&auto=format&fit=crop"
   },
   {
     id: "office-cleaning",

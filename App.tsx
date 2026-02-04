@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
@@ -5,7 +6,7 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import Contact from './pages/Contact';
 import Admin from './pages/Admin';
-import { AppState, SiteSettings } from './types';
+import { AppState, SiteSettings, ServiceItem, PortfolioItem } from './types';
 import { INITIAL_SETTINGS, INITIAL_SERVICES, INITIAL_PORTFOLIO } from './constants';
 
 const ScrollToTop = () => {
@@ -41,6 +42,14 @@ const App: React.FC = () => {
     setState(prev => ({ ...prev, settings: newSettings }));
   };
 
+  const updateServices = (newServices: ServiceItem[]) => {
+    setState(prev => ({ ...prev, services: newServices }));
+  };
+
+  const updatePortfolio = (newPortfolio: PortfolioItem[]) => {
+    setState(prev => ({ ...prev, portfolio: newPortfolio }));
+  };
+
   return (
     <Router>
       <ScrollToTop />
@@ -50,7 +59,7 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Home state={state} />} />
             <Route path="/about" element={
-              <div className="pt-40 pb-24 container mx-auto px-6">
+              <div className="pt-40 pb-24 container mx-auto px-6 text-white">
                 <div className="max-w-4xl">
                   <h1 className="text-6xl md:text-7xl font-black mb-12 animate-fadeInUp">인정E&C 소개</h1>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
@@ -58,16 +67,6 @@ const App: React.FC = () => {
                       <p className="text-white font-bold text-3xl">공간의 가치를 보존하는<br/><span className="text-[#8B5CF6]">최고의 기술력</span></p>
                       <p>인정E&C는 에어컨 정밀 세척부터 빌딩 종합 위생 관리까지, 보이지 않는 곳의 청결함이 고객의 삶의 질을 결정한다는 믿음으로 일합니다.</p>
                       <p>최첨단 내시경 장비와 친환경 세척 공법, 그리고 수만 건의 현장 경험을 보유한 숙련된 전문가 그룹이 당신의 공간을 책임집니다.</p>
-                      <div className="flex gap-8 py-4 border-t border-white/10 mt-8">
-                        <div>
-                          <p className="text-2xl font-bold text-white">100%</p>
-                          <p className="text-xs uppercase tracking-widest text-gray-500">정직한 공정</p>
-                        </div>
-                        <div>
-                          <p className="text-2xl font-bold text-white">2,000+</p>
-                          <p className="text-xs uppercase tracking-widest text-gray-500">누적 프로젝트</p>
-                        </div>
-                      </div>
                     </div>
                     <div className="glass rounded-[40px] p-2 animate-fadeInUp" style={{animationDelay: '0.4s'}}>
                       <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=1974&auto=format&fit=crop" className="rounded-[36px] grayscale hover:grayscale-0 transition-all duration-1000" alt="Team" />
@@ -77,7 +76,7 @@ const App: React.FC = () => {
               </div>
             } />
             <Route path="/services" element={
-               <div className="pt-40 pb-24 container mx-auto px-6">
+               <div className="pt-40 pb-24 container mx-auto px-6 text-white">
                  <div className="max-w-3xl mb-20">
                     <h1 className="text-6xl md:text-7xl font-black mb-8 animate-fadeInUp">전문 서비스</h1>
                     <p className="text-gray-400 text-xl animate-fadeInUp" style={{animationDelay: '0.2s'}}>
@@ -104,7 +103,7 @@ const App: React.FC = () => {
                </div>
             } />
             <Route path="/portfolio" element={
-              <div className="pt-40 pb-24 container mx-auto px-6">
+              <div className="pt-40 pb-24 container mx-auto px-6 text-white">
                 <div className="text-center max-w-2xl mx-auto mb-20">
                   <h1 className="text-6xl font-black mb-8 animate-fadeInUp">시공 사례</h1>
                   <p className="text-gray-500 animate-fadeInUp" style={{animationDelay: '0.2s'}}>현장에서 직접 증명한 인정E&C의 퀄리티를 확인하세요.</p>
@@ -134,7 +133,14 @@ const App: React.FC = () => {
               </div>
             } />
             <Route path="/contact" element={<Contact settings={state.settings} />} />
-            <Route path="/admin" element={<Admin state={state} updateSettings={updateSettings} />} />
+            <Route path="/admin" element={
+              <Admin 
+                state={state} 
+                updateSettings={updateSettings} 
+                updateServices={updateServices} 
+                updatePortfolio={updatePortfolio}
+              />
+            } />
           </Routes>
         </main>
         <Footer settings={state.settings} />

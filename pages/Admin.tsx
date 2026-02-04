@@ -1,23 +1,37 @@
 
 import React, { useState } from 'react';
-import { AppState, SiteSettings } from '../types';
+import { AppState, SiteSettings, ServiceItem, PortfolioItem } from '../types';
 
 interface AdminProps {
   state: AppState;
   updateSettings: (newSettings: SiteSettings) => void;
+  updateServices: (newServices: ServiceItem[]) => void;
+  updatePortfolio: (newPortfolio: PortfolioItem[]) => void;
 }
 
-const Admin: React.FC<AdminProps> = ({ state, updateSettings }) => {
-  const [form, setForm] = useState<SiteSettings>(state.settings);
+const Admin: React.FC<AdminProps> = ({ state, updateSettings, updateServices, updatePortfolio }) => {
+  const [settingsForm, setSettingsForm] = useState<SiteSettings>(state.settings);
+  const [servicesForm, setServicesForm] = useState<ServiceItem[]>(state.services);
+  const [portfolioForm, setPortfolioForm] = useState<PortfolioItem[]>(state.portfolio);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
   const handleSave = () => {
     setSaveStatus('saving');
     setTimeout(() => {
-      updateSettings(form);
+      updateSettings(settingsForm);
+      updateServices(servicesForm);
+      updatePortfolio(portfolioForm);
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     }, 800);
+  };
+
+  const handleServiceChange = (id: string, field: keyof ServiceItem, value: string) => {
+    setServicesForm(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
+  };
+
+  const handlePortfolioChange = (id: string, field: keyof PortfolioItem, value: string) => {
+    setPortfolioForm(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
   };
 
   return (
@@ -25,109 +39,176 @@ const Admin: React.FC<AdminProps> = ({ state, updateSettings }) => {
       <div className="container mx-auto px-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
           <div>
-            <h1 className="text-4xl font-black mb-2">관리자 대시보드</h1>
-            <p className="text-gray-500">웹사이트의 핵심 설정 및 콘텐츠를 실시간으로 변경합니다.</p>
+            <h1 className="text-4xl font-black mb-2 text-white">관리자 대시보드</h1>
+            <p className="text-gray-500">웹사이트의 모든 콘텐츠를 실시간으로 제어합니다.</p>
           </div>
           <button 
             onClick={handleSave}
             disabled={saveStatus === 'saving'}
-            className={`px-10 py-4 rounded-xl font-bold transition-all ${saveStatus === 'saved' ? 'bg-green-600' : 'bg-[#8B5CF6] hover:bg-[#7C3AED]'} purple-glow disabled:opacity-50`}
+            className={`px-10 py-4 rounded-xl font-bold transition-all ${saveStatus === 'saved' ? 'bg-green-600' : 'bg-[#8B5CF6] hover:bg-[#7C3AED]'} purple-glow disabled:opacity-50 shadow-lg text-white`}
           >
-            {saveStatus === 'saving' ? '저장 중...' : saveStatus === 'saved' ? '저장 완료!' : '설정 저장하기'}
+            {saveStatus === 'saving' ? '저장 중...' : saveStatus === 'saved' ? '저장 완료!' : '모든 변경사항 저장'}
           </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Config */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-12">
+            
+            {/* 기본 정보 */}
             <div className="glass p-8 rounded-3xl">
-              <h3 className="text-xl font-bold mb-8 border-b border-white/10 pb-4">기본 정보 설정</h3>
+              <h3 className="text-xl font-bold mb-8 border-b border-white/10 pb-4 flex items-center gap-2 text-white">
+                <span className="w-2 h-6 bg-[#8B5CF6] rounded-full"></span> 기본 정보 설정
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">회사 이름</label>
                   <input 
-                    value={form.companyName} 
-                    onChange={(e) => setForm({...form, companyName: e.target.value})}
-                    className="w-full bg-black border border-white/10 rounded-lg px-4 py-2 text-sm focus:border-[#8B5CF6] transition-colors" 
+                    value={settingsForm.companyName} 
+                    onChange={(e) => setSettingsForm({...settingsForm, companyName: e.target.value})}
+                    className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none transition-colors" 
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">대표 연락처</label>
                   <input 
-                    value={form.phone} 
-                    onChange={(e) => setForm({...form, phone: e.target.value})}
-                    className="w-full bg-black border border-white/10 rounded-lg px-4 py-2 text-sm focus:border-[#8B5CF6] transition-colors" 
+                    value={settingsForm.phone} 
+                    onChange={(e) => setSettingsForm({...settingsForm, phone: e.target.value})}
+                    className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none transition-colors" 
                   />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">메인 슬로건</label>
                   <input 
-                    value={form.slogan} 
-                    onChange={(e) => setForm({...form, slogan: e.target.value})}
-                    className="w-full bg-black border border-white/10 rounded-lg px-4 py-2 text-sm focus:border-[#8B5CF6] transition-colors" 
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold text-gray-500 mb-2 uppercase tracking-widest">사업장 주소</label>
-                  <input 
-                    value={form.address} 
-                    onChange={(e) => setForm({...form, address: e.target.value})}
-                    className="w-full bg-black border border-white/10 rounded-lg px-4 py-2 text-sm focus:border-[#8B5CF6] transition-colors" 
+                    value={settingsForm.slogan} 
+                    onChange={(e) => setSettingsForm({...settingsForm, slogan: e.target.value})}
+                    className="w-full bg-black border border-white/10 rounded-lg px-4 py-3 text-sm text-white focus:border-[#8B5CF6] outline-none transition-colors" 
                   />
                 </div>
               </div>
             </div>
 
+            {/* 서비스 관리 */}
             <div className="glass p-8 rounded-3xl">
-              <h3 className="text-xl font-bold mb-8 border-b border-white/10 pb-4">시공 사례(CMS) 미리보기</h3>
-              <div className="space-y-4">
-                {state.portfolio.map(item => (
-                  <div key={item.id} className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
-                    <img src={item.image} className="w-16 h-12 object-cover rounded-lg" />
-                    <div className="flex-1">
-                      <h4 className="font-bold text-sm">{item.title}</h4>
-                      <p className="text-xs text-gray-500">{item.category} | {item.date}</p>
+              <h3 className="text-xl font-bold mb-8 border-b border-white/10 pb-4 flex items-center gap-2 text-white">
+                <span className="w-2 h-6 bg-[#8B5CF6] rounded-full"></span> 주요 서비스 관리
+              </h3>
+              <div className="space-y-8">
+                {servicesForm.map((service) => (
+                  <div key={service.id} className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-4">
+                    <div className="flex flex-col md:flex-row gap-6">
+                      <div className="w-full md:w-1/3">
+                        <img src={service.image} className="w-full h-32 object-cover rounded-xl mb-3 border border-white/10" />
+                        <input 
+                          value={service.image} 
+                          onChange={(e) => handleServiceChange(service.id, 'image', e.target.value)}
+                          placeholder="이미지 URL"
+                          className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-[11px] text-white focus:border-[#8B5CF6] outline-none" 
+                        />
+                      </div>
+                      <div className="flex-1 space-y-4">
+                        <input 
+                          value={service.title} 
+                          onChange={(e) => handleServiceChange(service.id, 'title', e.target.value)}
+                          className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-[#8B5CF6] outline-none font-bold" 
+                        />
+                        <textarea 
+                          value={service.description} 
+                          rows={3}
+                          onChange={(e) => handleServiceChange(service.id, 'description', e.target.value)}
+                          className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-400 focus:border-[#8B5CF6] outline-none" 
+                        />
+                      </div>
                     </div>
-                    <button className="opacity-0 group-hover:opacity-100 p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-all">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
                   </div>
                 ))}
-                <button className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-gray-500 hover:border-[#8B5CF6] hover:text-[#8B5CF6] transition-all flex items-center justify-center gap-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                  새 사례 추가하기
-                </button>
               </div>
             </div>
+
+            {/* 시공사례 관리 */}
+            <div className="glass p-8 rounded-3xl">
+              <h3 className="text-xl font-bold mb-8 border-b border-white/10 pb-4 flex items-center gap-2 text-white">
+                <span className="w-2 h-6 bg-blue-500 rounded-full"></span> 시공사례(포트폴리오) 관리
+              </h3>
+              <div className="space-y-8">
+                {portfolioForm.map((item) => (
+                  <div key={item.id} className="p-6 rounded-2xl bg-white/5 border border-white/5 space-y-4">
+                    <div className="flex flex-col md:flex-row gap-6">
+                      <div className="w-full md:w-1/3">
+                        <img src={item.image} className="w-full h-40 object-cover rounded-xl mb-3 border border-white/10" />
+                        <label className="block text-[10px] text-gray-500 mb-1">이미지 URL</label>
+                        <input 
+                          value={item.image} 
+                          onChange={(e) => handlePortfolioChange(item.id, 'image', e.target.value)}
+                          className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-[11px] text-white focus:border-[#8B5CF6] outline-none" 
+                        />
+                      </div>
+                      <div className="flex-1 space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] text-gray-500 mb-1">시공명</label>
+                            <input 
+                              value={item.title} 
+                              onChange={(e) => handlePortfolioChange(item.id, 'title', e.target.value)}
+                              className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-[#8B5CF6] outline-none font-bold" 
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-gray-500 mb-1">카테고리</label>
+                            <input 
+                              value={item.category} 
+                              onChange={(e) => handlePortfolioChange(item.id, 'category', e.target.value)}
+                              className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-[#8B5CF6] focus:border-[#8B5CF6] outline-none" 
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-gray-500 mb-1">시공 날짜</label>
+                          <input 
+                            value={item.date} 
+                            onChange={(e) => handlePortfolioChange(item.id, 'date', e.target.value)}
+                            className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-500 focus:border-[#8B5CF6] outline-none" 
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-gray-500 mb-1">간략 설명</label>
+                          <textarea 
+                            value={item.description} 
+                            rows={2}
+                            onChange={(e) => handlePortfolioChange(item.id, 'description', e.target.value)}
+                            className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-400 focus:border-[#8B5CF6] outline-none" 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
 
-          {/* Side Panels */}
-          <div className="space-y-8">
-            <div className="glass p-8 rounded-3xl">
+          <div className="space-y-8 text-white">
+            <div className="glass p-8 rounded-3xl sticky top-32">
               <h3 className="text-lg font-bold mb-6">시스템 요약</h3>
               <div className="space-y-4">
                 <div className="p-4 rounded-xl bg-[#8B5CF6]/10 border border-[#8B5CF6]/20">
-                  <p className="text-xs text-gray-400 mb-1">이번 달 견적 문의</p>
-                  <p className="text-2xl font-black text-[#8B5CF6]">42 건</p>
+                  <p className="text-xs text-gray-400 mb-1">상태</p>
+                  <p className="text-2xl font-black text-[#8B5CF6]">운영 중</p>
                 </div>
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                  <p className="text-xs text-gray-400 mb-1">전체 게시물</p>
-                  <p className="text-2xl font-black">{state.portfolio.length} 개</p>
+                  <p className="text-xs text-gray-400 mb-1">서비스 항목</p>
+                  <p className="text-2xl font-black">{servicesForm.length} 개</p>
+                </div>
+                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                  <p className="text-xs text-gray-400 mb-1">시공 사례</p>
+                  <p className="text-2xl font-black">{portfolioForm.length} 개</p>
                 </div>
               </div>
-            </div>
-
-            <div className="glass p-8 rounded-3xl">
-              <h3 className="text-lg font-bold mb-6">디자인 테마</h3>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-3 uppercase tracking-widest">포인트 컬러</label>
-                <div className="flex gap-4">
-                  <button className="w-10 h-10 rounded-full bg-[#8B5CF6] ring-4 ring-[#8B5CF6]/20"></button>
-                  <button className="w-10 h-10 rounded-full bg-blue-600 hover:ring-4 hover:ring-blue-600/20"></button>
-                  <button className="w-10 h-10 rounded-full bg-emerald-600 hover:ring-4 hover:ring-emerald-600/20"></button>
-                  <button className="w-10 h-10 rounded-full bg-orange-600 hover:ring-4 hover:ring-orange-600/20"></button>
-                </div>
-                <p className="mt-4 text-[10px] text-gray-600">컬러 변경 시 전체 사이트의 강조색이 일괄 적용됩니다.</p>
+              
+              <div className="mt-8 pt-8 border-t border-white/10">
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  * 사진 변경: 이미지를 웹(구글 드라이브, 블로그 등)에 업로드 후 해당 이미지 주소를 복사하여 붙여넣으세요.
+                </p>
               </div>
             </div>
           </div>
