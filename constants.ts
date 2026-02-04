@@ -24,14 +24,14 @@ export const INITIAL_SERVICES: ServiceItem[] = [
     id: "ac-cleaning",
     title: "에어컨 분해 정밀 세척",
     description: "단순한 필터 청소를 넘어 냉각핀과 송풍팬까지 완전히 분해하여 살균합니다. 최첨단 내시경 장비로 보이지 않는 곳의 곰팡이와 박테리아를 99.9% 제거하여 맑은 공기를 되찾아드립니다.",
-    image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?q=80&w=2070&auto=format&fit=crop",
+    image: "https://m.ddaily.co.kr/photos/2021/09/36/202109369274342244_l.jpg",
     icon: "ac"
   },
   {
     id: "waterproofing",
     title: "특수 방수 및 나노 코팅",
     description: "건물의 생명을 연장하는 프리미엄 방수 솔루션입니다. 나노 입자 코팅 공법을 통해 수분 침투를 완벽히 차단하며, 오염 방지 기능을 더해 관리의 편의성과 내구성을 극대화합니다.",
-    image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop"
+    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaUKrjymsLAMLoY299N-AOy02n9LICMVam7Q&s"
   },
   {
     id: "office-cleaning",
@@ -61,7 +61,8 @@ export const INITIAL_PORTFOLIO: PortfolioItem[] = [
     title: "고급 주거 단지 지하주차장 방수 및 코팅",
     category: "특수 방수",
     description: "누수 문제가 발생한 대단지 아파트의 지하 구역에 최신 나노 방수 공법을 적용하여 문제를 근본적으로 해결했습니다.",
-    image: "https://images.unsplash.com/photo-1541888946425-d81bb19480c5?q=80&w=2070&auto=format&fit=crop",
+    // 요청하신 이미지 링크로 업데이트
+    image: "https://www.shinailbo.co.kr/news/photo/202206/1560433_739297_5723.jpg",
     date: "2024-04-28"
   },
   {
