@@ -7,7 +7,7 @@ import Home from './pages/Home';
 import Contact from './pages/Contact';
 import Admin from './pages/Admin';
 import { AppState, SiteSettings, ServiceItem, PortfolioItem, AboutContent } from './types';
-import { INITIAL_SETTINGS, INITIAL_SERVICES, INITIAL_PORTFOLIO, INITIAL_ABOUT } from './constants';
+import { db } from './services/db';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -18,44 +18,59 @@ const ScrollToTop = () => {
 };
 
 const App: React.FC = () => {
-  const [state, setState] = useState<AppState>(() => {
-    const saved = localStorage.getItem('injeng_ec_state_v1');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        // Ensure about exists in parsed state
-        if (!parsed.about) parsed.about = INITIAL_ABOUT;
-        return parsed;
-      } catch (e) {
-        console.error("Failed to parse saved state", e);
-      }
-    }
-    return {
-      settings: INITIAL_SETTINGS,
-      services: INITIAL_SERVICES,
-      portfolio: INITIAL_PORTFOLIO,
-      about: INITIAL_ABOUT
-    };
-  });
+  const [state, setState] = useState<AppState | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // 초기 데이터 베이스 연동
   useEffect(() => {
-    localStorage.setItem('injeng_ec_state_v1', JSON.stringify(state));
-  }, [state]);
+    const initDb = async () => {
+      const data = await db.fetchState();
+      setState(data);
+      setIsLoading(false);
+    };
+    initDb();
+  }, []);
+
+  if (isLoading || !state) {
+    return (
+      <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-[9999]">
+        <div className="w-20 h-20 bg-[#8B5CF6] rounded-2xl flex items-center justify-center text-white font-normal text-3xl mb-6 animate-pulse shadow-2xl shadow-[#8B5CF6]/50">
+          <span style={{ fontFamily: "'Righteous', cursive" }}>IJ</span>
+        </div>
+        <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden relative">
+          <div className="absolute inset-0 bg-[#8B5CF6] w-full origin-left animate-[loading_2s_ease-in-out_infinite]"></div>
+        </div>
+        <p className="mt-6 text-gray-500 text-xs font-black tracking-[0.3em] uppercase animate-pulse">Connecting to Database...</p>
+        <style>{`
+          @keyframes loading {
+            0% { transform: scaleX(0); }
+            50% { transform: scaleX(1); }
+            100% { transform: scaleX(0); transform-origin: right; }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  const handleUpdateState = async (newState: AppState) => {
+    setState(newState);
+    await db.saveState(newState);
+  };
 
   const updateSettings = (newSettings: SiteSettings) => {
-    setState(prev => ({ ...prev, settings: newSettings }));
+    handleUpdateState({ ...state, settings: newSettings });
   };
 
   const updateServices = (newServices: ServiceItem[]) => {
-    setState(prev => ({ ...prev, services: newServices }));
+    handleUpdateState({ ...state, services: newServices });
   };
 
   const updatePortfolio = (newPortfolio: PortfolioItem[]) => {
-    setState(prev => ({ ...prev, portfolio: newPortfolio }));
+    handleUpdateState({ ...state, portfolio: newPortfolio });
   };
 
   const updateAbout = (newAbout: AboutContent) => {
-    setState(prev => ({ ...prev, about: newAbout }));
+    handleUpdateState({ ...state, about: newAbout });
   };
 
   return (
